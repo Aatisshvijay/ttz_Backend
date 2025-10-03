@@ -15,27 +15,45 @@ app.use(helmet({
 }));
 app.use(morgan('combined'));
 
-// Enhanced CORS configuration
-const corsOptions = {
-  origin: [
-    process.env.FRONTEND_URL, // Deployed frontend URL
+// ===================================
+// CRITICAL FIX: ROBUST CORS CONFIGURATION
+// ===================================
+
+// Whitelist origins based on environment variables and localhost
+const WHITELISTED_ORIGINS = [
+    process.env.FRONTEND_URL, // This is your Vercel URL from Render's env variable
     'http://localhost:3000',
     'http://localhost:5173',
     'http://localhost:5174',
     'http://localhost:3001'
-  ].filter(Boolean), // Filter out undefined if FRONTEND_URL is missing
+].filter(Boolean); // Filters out any undefined or empty strings
+
+const corsOptions = {
+  // Use a function to dynamically check if the origin is allowed
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps, cURL, or postman)
+    if (!origin) return callback(null, true); 
+    
+    // Check if the requesting origin is in our whitelist
+    if (WHITELISTED_ORIGINS.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    // Block all others and provide error details
+    callback(new Error(`Not allowed by CORS from origin: ${origin}`));
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-session-id', 'Accept', 'Origin', 'X-Requested-With'],
   exposedHeaders: ['Content-Range', 'X-Content-Range']
 };
 
-app.use(cors(corsOptions));
+// Global CORS middleware handles all requests
+app.use(cors(corsOptions)); 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 
 // MongoDB Connection
-// DEPLOYMENT FIX: Standard mongoose connection for modern versions
 mongoose.connect(process.env.MONGODB_URI)
 .then(() => console.log('Connected to MongoDB'))
 .catch(err => console.error('MongoDB connection error:', err));
@@ -52,19 +70,20 @@ app.use('/api/temples', templeRoutes);
 app.use('/api/bucketlist', bucketlistRoutes);
 app.use('/api/auth', authRoutes);
 
-// ... (All API routes defined here, including /api/health)
-
 // Health check route
 app.get('/api/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
+  res.json({
+    status: 'OK',
     message: 'Temple Discovery API is running',
     timestamp: new Date().toISOString()
   });
 });
 
+// ===================================
+// ERROR HANDLING (FINAL CRITICAL ORDERING)
+// ===================================
+
 // 1. 404 Handler (MUST be the LAST route/middleware before the 500 error handler)
-// This catches requests that fall through all the defined routes above.
 app.use((req, res, next) => {
   res.status(404).json({
     error: 'Route not found',
@@ -73,7 +92,6 @@ app.use((req, res, next) => {
 });
 
 // 2. 500 Error handling middleware (MUST be the absolute last)
-// Note the required 4 arguments: (err, req, res, next)
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({
@@ -82,6 +100,7 @@ app.use((err, req, res, next) => {
   });
 });
 
+// Start Server
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
