@@ -11,50 +11,45 @@ const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(helmet({
-  crossOriginResourcePolicy: { policy: "cross-origin" }
+  crossOriginResourcePolicy: { policy: "cross-origin" } 
 }));
 app.use(morgan('combined'));
 
-// ===================================
-// CRITICAL FIX: ROBUST CORS CONFIGURATION
-// ===================================
-
-// Whitelist origins based on environment variables and localhost
-const WHITELISTED_ORIGINS = [
-    process.env.FRONTEND_URL, // This is your Vercel URL from Render's env variable
-    'http://localhost:3000',
+// ===============================================
+// CRITICAL FIX: UPDATED CORS CONFIGURATION
+// ===============================================
+const corsOptions = {
+  origin: [
+    // 1. Local Development URLs
+    process.env.FRONTEND_URL || 'http://localhost:3000',
     'http://localhost:5173',
     'http://localhost:5174',
-    'http://localhost:3001'
-].filter(Boolean); // Filters out any undefined or empty strings
-
-const corsOptions = {
-  // Use a function to dynamically check if the origin is allowed
-  origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps, cURL, or postman)
-    if (!origin) return callback(null, true); 
+    'http://localhost:3001',
     
-    // Check if the requesting origin is in our whitelist
-    if (WHITELISTED_ORIGINS.includes(origin)) {
-      return callback(null, true);
-    }
+    // 2. Vercel Production URL (Primary domain)
+    'https://ttz-frontend.vercel.app', 
     
-    // Block all others and provide error details
-    callback(new Error(`Not allowed by CORS from origin: ${origin}`));
-  },
+    // 3. Vercel Preview URL (The specific one that was failing)
+    'https://ttz-frontend-blw4lti7p-aats-projects-7d053e57.vercel.app'
+  ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-session-id', 'Accept', 'Origin', 'X-Requested-With'],
   exposedHeaders: ['Content-Range', 'X-Content-Range']
 };
+// ===============================================
 
-// Global CORS middleware handles all requests
-app.use(cors(corsOptions)); 
-app.use(express.static(path.join(__dirname, 'public')));
+// Global CORS middleware handles all requests, including static files.
+app.use(cors(corsOptions)); // <--- CORRECT: Use the global CORS settings
+
+// Static files middleware
+app.use(express.static(path.join(__dirname, 'public'))); // This line is correct
+
 app.use(express.json());
 
 // MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI)
+// DEPLOYMENT FIX: Removed deprecated options (useNewUrlParser, useUnifiedTopology)
+mongoose.connect(process.env.MONGODB_URI) // <--- CORRECTED
 .then(() => console.log('Connected to MongoDB'))
 .catch(err => console.error('MongoDB connection error:', err));
 
@@ -63,44 +58,39 @@ const templeRoutes = require('./routes/temples');
 const bucketlistRoutes = require('./routes/bucketlist');
 const authRoutes = require('./routes/auth');
 
-// ===================================
-// API ROUTES
-// ===================================
+// Routes
+// DEPLOYMENT FIX: All API routes must be prefixed with '/api'
 app.use('/api/temples', templeRoutes);
 app.use('/api/bucketlist', bucketlistRoutes);
 app.use('/api/auth', authRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'OK',
+  res.json({ 
+    status: 'OK', 
     message: 'Temple Discovery API is running',
     timestamp: new Date().toISOString()
   });
 });
 
-// ===================================
-// ERROR HANDLING (FINAL CRITICAL ORDERING)
-// ===================================
-
-// 1. 404 Handler (MUST be the LAST route/middleware before the 500 error handler)
-app.use((req, res, next) => {
-  res.status(404).json({
-    error: 'Route not found',
-    message: `Cannot ${req.method} ${req.originalUrl}`
-  });
-});
-
-// 2. 500 Error handling middleware (MUST be the absolute last)
+// Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({
-    error: 'Something went wrong!',
-    message: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error'
+  res.status(500).json({ 
+    error: 'Something went wrong!', 
+    message: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error' 
   });
 });
 
-// Start Server
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+// 404 handler
+// This should catch any non-API routes that haven't been handled
+app.use('*', (req, res) => {
+  if (req.originalUrl.startsWith('/api')) {
+    // If it was meant to be an API call but didn't match a route
+    return res.status(404).json({ error: `API Endpoint Not Found: ${req.originalUrl}` });
+  }
+  // For other requests (e.g., static files that don't exist)
+  res.status(404).json({ error: 'Resource Not Found' });
 });
+
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
