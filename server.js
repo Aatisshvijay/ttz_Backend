@@ -7,7 +7,7 @@ const path = require('path');
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT; // Use only the port provided by Render
+const PORT = process.env.PORT || 10000;
 
 // Middleware
 app.use(helmet({
@@ -15,15 +15,29 @@ app.use(helmet({
 }));
 app.use(morgan('combined'));
 
+// IMPROVED CORS Configuration
 const corsOptions = {
-  origin: [
-    process.env.FRONTEND_URL,
-    'https://ttz-frontend.vercel.app',
-    'https://ttz-frontend-77sxmefbn-aats-projects-7d053e57.vercel.app',
-    'https://ttz-frontend-blw4lti7p-aats-projects-7d053e57.vercel.app',
-    'http://localhost:5173',
-    'http://localhost:3000'
-  ],
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      process.env.FRONTEND_URL,
+      'https://ttz-frontend.vercel.app',
+      'https://ttz-frontend-77sxmefbn-aats-projects-7d053e57.vercel.app',
+      'https://ttz-frontend-blw4lti7p-aats-projects-7d053e57.vercel.app',
+      'http://localhost:5173',
+      'http://localhost:3000'
+    ];
+    
+    // Also allow any *.vercel.app domain for preview deployments
+    if (origin.endsWith('.vercel.app') || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.log('CORS blocked origin:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'x-session-id'],
@@ -54,7 +68,8 @@ app.get('/api/health', (req, res) => {
   res.json({
     status: 'OK',
     message: 'Temple Discovery API is running',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    cors: 'enabled'
   });
 });
 
