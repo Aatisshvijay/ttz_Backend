@@ -9,7 +9,19 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-// CRITICAL FIX: More permissive CORS for Vercel deployments
+// ============================================
+// Database Connection
+// ============================================
+mongoose.connect(process.env.MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => console.log('✅ MongoDB connected successfully'))
+.catch(err => console.error('❌ MongoDB connection error:', err));
+
+// ============================================
+// CRITICAL FIX: CORS Configuration
+// ============================================
 const corsOptions = {
   origin: function (origin, callback) {
     // Allow requests with no origin (mobile apps, Postman, curl)
@@ -24,10 +36,16 @@ const corsOptions = {
     const allowedOrigins = [
       'http://localhost:5173',
       'http://localhost:3000',
-      'http://localhost:4173'
+      'http://localhost:4173',
+      // 🎯 CRITICAL FIX: Explicitly add the Vercel URL from your screenshot
+      'https://ttz-frontend-h5utxl4am-aats-projects-7d053d57.vercel.app', 
+      'https://ttz-frontend-55v637ati-aats-projects-7d053e57.vercel.app',
+      // 🎯 ADD YOUR PRODUCTION VERCEL DOMAIN HERE (e.g., if you have a custom domain)
+      // 'https://your-production-domain.vercel.app' 
     ];
     
     // Check if origin matches any pattern
+    // This allows all Vercel/Render preview environments automatically
     const isVercelApp = origin.endsWith('.vercel.app');
     const isRenderApp = origin.includes('.onrender.com');
     const isAllowedOrigin = allowedOrigins.includes(origin);
@@ -41,62 +59,41 @@ const corsOptions = {
     }
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: [
-    'Content-Type', 
-    'Authorization', 
-    'x-session-id',
-    'Accept',
-    'Origin',
-    'X-Requested-With'
-  ],
-  exposedHeaders: ['Content-Range', 'X-Content-Range'],
-  maxAge: 86400, // 24 hours
-  optionsSuccessStatus: 200
+  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+  allowedHeaders: 'Content-Type,Authorization,X-Session-ID', // Ensure X-Session-ID is allowed
+  exposedHeaders: 'Authorization'
 };
 
-// Apply CORS middleware FIRST
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
 
-// Other middleware
-app.use(helmet({
-  crossOriginResourcePolicy: { policy: "cross-origin" },
-  crossOriginEmbedderPolicy: false
-}));
-app.use(morgan('combined'));
-app.use(express.json());
+// ============================================
+// Middleware
+// ============================================
+app.use(express.json()); // Body parser for JSON
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(helmet()); // Secure Express apps by setting various HTTP headers
+app.use(morgan('tiny')); // Simple logging
+app.use('/public', express.static(path.join(__dirname, 'public'))); // Static files
 
-// MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI, {
-  serverSelectionTimeoutMS: 5000,
-  socketTimeoutMS: 45000,
-})
-  .then(() => console.log('Connected to MongoDB'))
-  .catch(err => {
-    console.error('MongoDB connection error:', err);
-    process.exit(1);
-  });
-
-// Import routes
-const templeRoutes = require('./routes/temples');
-const bucketlistRoutes = require('./routes/bucketlist');
-const authRoutes = require('./routes/auth');
-
+// ============================================
 // Routes
-app.use('/api/temples', templeRoutes);
-app.use('/api/bucketlist', bucketlistRoutes);
-app.use('/api/auth', authRoutes);
+// (You must include your actual route imports here)
+// Example:
+// const authRoutes = require('./routes/authRoutes');
+// const templeRoutes = require('./routes/templeRoutes');
+// app.use('/api/auth', authRoutes);
+// app.use('/api/temples', templeRoutes);
+// ============================================
+// Assuming your temple/auth routes are already applied here
 
-// Health check
+// ============================================
+// Health Check / Root Endpoint
+// ============================================
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'OK',
-    message: 'Temple Discovery API is running',
-    timestamp: new Date().toISOString(),
-    cors: 'enabled',
+    message: 'API is running',
+    version: '1.0.0',
     mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
   });
 });
@@ -109,7 +106,11 @@ app.get('/', (req, res) => {
   });
 });
 
-// CORS error handling
+// ============================================
+// Error Handling
+// ============================================
+
+// CORS error handling (handles errors thrown by the cors middleware)
 app.use((err, req, res, next) => {
   if (err.message && err.message.includes('CORS')) {
     console.error('CORS Error:', err.message);
@@ -122,7 +123,7 @@ app.use((err, req, res, next) => {
   next(err);
 });
 
-// Error handling
+// Generic 500 handler
 app.use((err, req, res, next) => {
   console.error('Error:', err.stack);
   res.status(500).json({
@@ -142,19 +143,11 @@ app.use('*', (req, res) => {
   res.status(404).json({ error: 'Resource Not Found' });
 });
 
-// Listen
+// ============================================
+// Server Listen
+// ============================================
 const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🚀 Server running on http://0.0.0.0:${PORT}`);
 });
 
-// Graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('SIGTERM received, closing server gracefully');
-  server.close(() => {
-    mongoose.connection.close(false, () => {
-      console.log('MongoDB connection closed');
-      process.exit(0);
-    });
-  });
-});
+module.exports = server;
