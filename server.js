@@ -7,11 +7,11 @@ const path = require('path');
 require('dotenv').config();
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT; // Use only the port provided by Render
 
 // Middleware
 app.use(helmet({
-  crossOriginResourcePolicy: { policy: "cross-origin" } 
+  crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
 app.use(morgan('combined'));
 
@@ -51,7 +51,7 @@ app.use('/api/auth', authRoutes);
 
 // Health check route
 app.get('/api/health', (req, res) => {
-  res.json({ 
+  res.json({
     status: 'OK',
     message: 'Temple Discovery API is running',
     timestamp: new Date().toISOString()
@@ -75,4 +75,5 @@ app.use('*', (req, res) => {
   res.status(404).json({ error: 'Resource Not Found' });
 });
 
+// Listen on the port provided by Render
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
