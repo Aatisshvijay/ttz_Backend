@@ -8,7 +8,18 @@ require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 10000;
+// ============================================
+// Routes (FIX: Must be uncommented/added)
+// ============================================
+// Assuming your route files are in a 'routes' directory:
+const templeRoutes = require('./routes/temples');
+const authRoutes = require('./routes/auth');
+const bucketlistRoutes = require('./routes/bucketlist');
 
+// Mount routes under their respective prefixes
+app.use('/api/temples', templeRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/bucketlist', bucketlistRoutes);
 // ============================================
 // Database Connection
 // ============================================
