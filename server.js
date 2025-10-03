@@ -3,107 +3,80 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
-const path = require('path');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 10000;
-// ============================================
-// Routes (FIX: Must be uncommented/added)
-// ============================================
-// Assuming your route files are in a 'routes' directory:
-const templeRoutes = require('./routes/temples');
-const authRoutes = require('./routes/auth');
-const bucketlistRoutes = require('./routes/bucketlist');
-
-// Mount routes under their respective prefixes
-app.use('/api/temples', templeRoutes);
-app.use('/api/auth', authRoutes);
-app.use('/api/bucketlist', bucketlistRoutes);
-// ============================================
-// Database Connection
-// ============================================
-mongoose.connect(process.env.MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => console.log('✅ MongoDB connected successfully'))
-.catch(err => console.error('❌ MongoDB connection error:', err));
 
 // ============================================
-// CRITICAL FIX: CORS Configuration
+// 1. DATABASE CONNECTION
 // ============================================
+const MONGODB_URI = process.env.MONGODB_URI;
+
+mongoose.connect(MONGODB_URI)
+  .then(() => console.log('✅ MongoDB connected successfully'))
+  .catch(err => {
+    console.error('❌ MongoDB connection error:', err.message);
+    // Exit process on connection failure
+    process.exit(1); 
+  });
+
+// ============================================
+// 2. MIDDLEWARE & CONFIGURATION
+// ============================================
+
+// CRITICAL FIX: More permissive CORS for Vercel/Render deployments
 const corsOptions = {
   origin: function (origin, callback) {
-    // Allow requests with no origin (mobile apps, Postman, curl)
-    if (!origin) {
-      console.log('Request with no origin - allowing');
-      return callback(null, true);
-    }
+    if (!origin) return callback(null, true);
     
-    console.log('Request from origin:', origin);
-    
-    // List of exact allowed origins
+    // Check for exact origins and wildcard domains
     const allowedOrigins = [
       'http://localhost:5173',
       'http://localhost:3000',
-      'http://localhost:4173',
-      // 🎯 All Vercel Preview URLs that were logged as issues
-      'https://ttz-frontend-h5utxl4am-aats-projects-7d053d57.vercel.app', 
-      'https://ttz-frontend-55v637ati-aats-projects-7d053e57.vercel.app',
-      // 🎯 ADD YOUR PRODUCTION VERCEL DOMAIN HERE (e.g., if you have a custom domain)
-      // 'https://your-production-domain.vercel.app' 
+      'http://localhost:4173'
     ];
-    
-    // Check if origin matches any pattern
-    // This allows all Vercel/Render preview environments automatically
     const isVercelApp = origin.endsWith('.vercel.app');
     const isRenderApp = origin.includes('.onrender.com');
     const isAllowedOrigin = allowedOrigins.includes(origin);
     
     if (isVercelApp || isRenderApp || isAllowedOrigin) {
-      console.log('CORS: Origin allowed -', origin);
+      // console.log('CORS: Origin allowed -', origin);
       callback(null, true);
     } else {
-      console.log('CORS: Origin blocked -', origin);
+      // console.log('CORS: Origin blocked -', origin);
       callback(new Error(`CORS policy: Origin ${origin} is not allowed`));
     }
   },
   credentials: true,
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-  allowedHeaders: 'Content-Type,Authorization,X-Session-ID', // Ensure X-Session-ID is allowed
-  exposedHeaders: 'Authorization'
 };
 
-app.use(cors(corsOptions));
-
-// ============================================
-// Middleware
-// ============================================
+app.use(helmet()); // Basic security headers
+app.use(cors(corsOptions)); // CORS middleware
 app.use(express.json()); // Body parser for JSON
-app.use(express.urlencoded({ extended: true }));
-app.use(helmet()); // Secure Express apps by setting various HTTP headers
-app.use(morgan('tiny')); // Simple logging
-app.use('/public', express.static(path.join(__dirname, 'public'))); // Static files
+app.use(morgan('tiny')); // Request logger
 
 // ============================================
-// Routes
-// (Ensure your route imports are uncommented in your final file)
-// const authRoutes = require('./routes/authRoutes');
-// const templeRoutes = require('./routes/templeRoutes');
-// app.use('/api/auth', authRoutes);
-// app.use('/api/temples', templeRoutes);
+// 3. ROUTES (CRITICAL FIX FOR 404 ERROR)
 // ============================================
+// Make sure these route files are correctly placed in a './routes' directory
+const templeRoutes = require('./routes/temples');
+const authRoutes = require('./routes/auth');
+const bucketlistRoutes = require('./routes/bucketlist');
+
+// Mount the routers under the '/api' prefix
+app.use('/api/temples', templeRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/bucketlist', bucketlistRoutes);
+
 
 // ============================================
-// Health Check / Root Endpoint
+// 4. GENERAL ENDPOINTS (Health Check & Root)
 // ============================================
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'OK',
-    message: 'API is running',
-    version: '1.0.0',
-    mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
+    db: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
   });
 });
 
@@ -115,16 +88,17 @@ app.get('/', (req, res) => {
   });
 });
 
+
 // ============================================
-// Error Handling
+// 5. ERROR HANDLERS (Must be at the end)
 // ============================================
 
-// CORS error handling (handles errors thrown by the cors middleware)
+// CORS error handling (handles the custom error thrown by corsOptions)
 app.use((err, req, res, next) => {
   if (err.message && err.message.includes('CORS')) {
     console.error('CORS Error:', err.message);
     return res.status(403).json({
-      error: 'CORS Error',
+      error: 'CORS Policy Error',
       message: err.message,
       origin: req.headers.origin
     });
@@ -132,51 +106,46 @@ app.use((err, req, res, next) => {
   next(err);
 });
 
-// Generic 500 handler
+// General 500 (Server) error handling
 app.use((err, req, res, next) => {
-  console.error('Error:', err.stack);
+  console.error('SERVER ERROR:', err.stack);
   res.status(500).json({
     error: 'Something went wrong!',
     message: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error'
   });
 });
 
-// 404 handler
+// 404 handler (Catches requests that fall through all routes/middleware)
 app.use('*', (req, res) => {
-  if (req.originalUrl.startsWith('/api')) {
-    return res.status(404).json({ 
-      error: 'API Endpoint Not Found', 
-      path: req.originalUrl 
-    });
-  }
-  res.status(404).json({ error: 'Resource Not Found' });
+  const isApi = req.originalUrl.startsWith('/api');
+  res.status(404).json({ 
+    error: isApi ? 'API Endpoint Not Found' : 'Resource Not Found', 
+    path: req.originalUrl 
+  });
 });
 
+
 // ============================================
-// Server Listen
+// 6. SERVER LISTEN & GRACEFUL SHUTDOWN (FINAL FIX)
 // ============================================
 const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on http://0.0.0.0:${PORT}`);
 });
 
-module.exports = server;
-
-// ============================================
-// 🎯 FINAL FIX: Graceful Shutdown (Mongoose v6/v7 Update)
-// This resolves the "MongooseError: Connection.prototype.close() no longer accepts a callback"
-// ============================================
-process.on('SIGTERM', () => {
+// Graceful shutdown handler for Render SIGTERM
+process.on('SIGTERM', async () => {
   console.log('SIGTERM received, closing server gracefully');
   server.close(async () => {
+    // CRITICAL FIX: Close Mongoose connection using the modern promise-based method
     try {
-      // 🛑 FIX APPLIED: Removed the callback from mongoose.connection.close()
-      // It now returns a promise/uses async/await internally
-      await mongoose.connection.close(false); 
-      console.log('MongoDB connection closed');
-      process.exit(0);
+        await mongoose.connection.close(false); // false means it won't force-close ongoing operations
+        console.log('MongoDB connection closed');
+        process.exit(0); // Exit with success
     } catch (err) {
-      console.error('Error during database close:', err.message);
-      process.exit(1);
+        console.error('Error closing MongoDB connection:', err);
+        process.exit(1); // Exit with failure
     }
   });
 });
+
+module.exports = server;
