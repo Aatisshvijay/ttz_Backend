@@ -1,8 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const Temple = require('../models/Temple');
+const Temple = require('../models/Temple'); // <-- CRITICAL IMPORT
 
-// Cache for frequently accessed data (in production, use Redis)
+// ============================================
+// Caching Setup (Must be at the top)
+// ============================================
 const cache = new Map();
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
@@ -70,7 +72,6 @@ router.get('/deities', async (req, res) => {
 // ============================================
 router.get('/deity/:deityName', async (req, res) => {
     try {
-        // Use decodeURIComponent to handle spaces in deity names like 'Lord Shiva'
         const deity = decodeURIComponent(req.params.deityName);
         const cacheKey = `categories_by_deity_${deity}`;
         const cached = getCachedData(cacheKey);
@@ -95,11 +96,9 @@ router.get('/deity/:deityName', async (req, res) => {
                     templeCount: 1,
                 }
             },
-            { $sort: { name: 1 } } // Sort categories alphabetically
+            { $sort: { name: 1 } }
         ]);
         
-        // NOTE: The frontend (GodTemplesPage.jsx) handles adding images and descriptions
-
         setCachedData(cacheKey, categoryData);
         res.json(categoryData);
     } catch (error) {
@@ -172,6 +171,6 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-// ... (Other routes like /search, /plan-trip go here)
+// Assuming your other routes (like /plan-trip, /search) are correctly placed here.
 
 module.exports = router;
