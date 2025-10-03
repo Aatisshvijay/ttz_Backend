@@ -32,6 +32,7 @@ const corsOptions = {
     
     // Check for exact origins and wildcard domains
     const allowedOrigins = [
+      'https://ttz-frontend-3dkg05yp6-aats-projects-7d053e57.vercel.app/',
       'http://localhost:5173',
       'http://localhost:3000',
       'http://localhost:4173'
@@ -57,17 +58,18 @@ app.use(express.json()); // Body parser for JSON
 app.use(morgan('tiny')); // Request logger
 
 // ============================================
-// 3. ROUTES (CRITICAL FIX FOR 404 ERROR)
+// 3. ROUTES (CRITICAL FIX: REMOVING '/api' PREFIX FROM MOUNT)
 // ============================================
-// Make sure these route files are correctly placed in a './routes' directory
+// Import Route Files
 const templeRoutes = require('./routes/temples');
 const authRoutes = require('./routes/auth');
 const bucketlistRoutes = require('./routes/bucketlist');
 
-// Mount the routers under the '/api' prefix
-app.use('/api/temples', templeRoutes);
-app.use('/api/auth', authRoutes);
-app.use('/api/bucketlist', bucketlistRoutes);
+// Change the mounting path from '/api/temples' to just '/temples'
+// This ensures that Express matches the path the client is actually sending: /temples/deities
+app.use('/temples', templeRoutes);
+app.use('/auth', authRoutes);
+app.use('/bucketlist', bucketlistRoutes);
 
 
 // ============================================
