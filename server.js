@@ -29,6 +29,9 @@ const corsOptions = {
     // 2. Vercel Production URL (Primary domain)
     'https://ttz-frontend.vercel.app', 
     
+    // NEW FAILING URL: Add this line!
+    'https://ttz-frontend-77sxmefbn-aats-projects-7d053e57.vercel.app', 
+    
     // 3. Vercel Preview URL (The specific one that was failing)
     'https://ttz-frontend-blw4lti7p-aats-projects-7d053e57.vercel.app'
   ],
