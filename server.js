@@ -37,7 +37,7 @@ const corsOptions = {
       'http://localhost:5173',
       'http://localhost:3000',
       'http://localhost:4173',
-      // 🎯 CRITICAL FIX: Explicitly add the Vercel URL from your screenshot
+      // 🎯 All Vercel Preview URLs that were logged as issues
       'https://ttz-frontend-h5utxl4am-aats-projects-7d053d57.vercel.app', 
       'https://ttz-frontend-55v637ati-aats-projects-7d053e57.vercel.app',
       // 🎯 ADD YOUR PRODUCTION VERCEL DOMAIN HERE (e.g., if you have a custom domain)
@@ -77,14 +77,12 @@ app.use('/public', express.static(path.join(__dirname, 'public'))); // Static fi
 
 // ============================================
 // Routes
-// (You must include your actual route imports here)
-// Example:
+// (Ensure your route imports are uncommented in your final file)
 // const authRoutes = require('./routes/authRoutes');
 // const templeRoutes = require('./routes/templeRoutes');
 // app.use('/api/auth', authRoutes);
 // app.use('/api/temples', templeRoutes);
 // ============================================
-// Assuming your temple/auth routes are already applied here
 
 // ============================================
 // Health Check / Root Endpoint
@@ -151,3 +149,23 @@ const server = app.listen(PORT, '0.0.0.0', () => {
 });
 
 module.exports = server;
+
+// ============================================
+// 🎯 FINAL FIX: Graceful Shutdown (Mongoose v6/v7 Update)
+// This resolves the "MongooseError: Connection.prototype.close() no longer accepts a callback"
+// ============================================
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received, closing server gracefully');
+  server.close(async () => {
+    try {
+      // 🛑 FIX APPLIED: Removed the callback from mongoose.connection.close()
+      // It now returns a promise/uses async/await internally
+      await mongoose.connection.close(false); 
+      console.log('MongoDB connection closed');
+      process.exit(0);
+    } catch (err) {
+      console.error('Error during database close:', err.message);
+      process.exit(1);
+    }
+  });
+});
