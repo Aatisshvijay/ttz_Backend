@@ -52,21 +52,19 @@ app.use('/api/temples', templeRoutes);
 app.use('/api/bucketlist', bucketlistRoutes);
 app.use('/api/auth', authRoutes);
 
-// Health check route - IMPORTANT to ensure deployment is running
+// ... (All API routes defined here, including /api/health)
+
+// Health check route
 app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'OK',
+  res.json({ 
+    status: 'OK', 
     message: 'Temple Discovery API is running',
     timestamp: new Date().toISOString()
   });
 });
 
-// ===================================
-// ERROR HANDLING (CRITICAL ORDERING FIX)
-// ===================================
-
 // 1. 404 Handler (MUST be the LAST route/middleware before the 500 error handler)
-// This catches any request that falls through all the defined API routes above.
+// This catches requests that fall through all the defined routes above.
 app.use((req, res, next) => {
   res.status(404).json({
     error: 'Route not found',
@@ -74,20 +72,16 @@ app.use((req, res, next) => {
   });
 });
 
-// 2. 500 Error handling middleware
-// This must be the absolute last middleware and must have four arguments (err, req, res, next)
+// 2. 500 Error handling middleware (MUST be the absolute last)
+// Note the required 4 arguments: (err, req, res, next)
 app.use((err, req, res, next) => {
-  console.error(err.stack); // Log the stack trace for server-side debugging
-
-  // Send a generic error response in production for security
+  console.error(err.stack);
   res.status(500).json({
     error: 'Something went wrong!',
     message: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error'
   });
 });
 
-
-// Start Server
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
