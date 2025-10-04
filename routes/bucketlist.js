@@ -8,6 +8,7 @@ const auth = require('../middleware/auth');
 
 // Helper function to generate session ID for non-authenticated users
 const generateSessionId = (req) => {
+  // Use a session header fallback, or req.ip, or a default
   return req.headers['x-session-id'] || req.ip || 'default-session';
 };
 
@@ -17,7 +18,7 @@ const getUserFromToken = (req) => {
   if (authHeader && authHeader.startsWith('Bearer ')) {
     try {
       const token = authHeader.substring(7);
-      // DEPLOYMENT FIX: Removed hardcoded fallback secret 'your-secret-key'
+      // DEPLOYMENT FIX: Must use the environment secret key
       const decoded = jwt.verify(token, process.env.JWT_SECRET); 
       return { userId: decoded.userId, isAuthenticated: true };
     } catch (error) {
@@ -28,7 +29,7 @@ const getUserFromToken = (req) => {
   return { userId: null, isAuthenticated: false };
 };
 
-// Get user's bucketlist
+// Get user's bucketlist (Authenticated or Guest)
 router.get('/', async (req, res) => {
   try {
     const { userId, isAuthenticated } = getUserFromToken(req);
@@ -43,6 +44,7 @@ router.get('/', async (req, res) => {
       query = { sessionId, userId: { $exists: false } };
     }
     
+    // Sort by most recently added
     const bucketlist = await Bucketlist.find(query).sort({ addedAt: -1 });
     res.json(bucketlist);
   } catch (error) {
@@ -51,8 +53,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// In routes/bucketlist.js - Update the "Add temple to bucketlist" route
-
+// Add temple to bucketlist (Authenticated or Guest)
 router.post('/', async (req, res) => {
   try {
     const { templeId } = req.body;
@@ -64,7 +65,7 @@ router.post('/', async (req, res) => {
     const { userId, isAuthenticated } = getUserFromToken(req);
     let bucketlistData = {};
 
-    // Check if temple exists
+    // Check if temple exists in the main data source
     const temple = await Temple.findOne({ id: templeId });
     if (!temple) {
       return res.status(404).json({ error: 'Temple not found' });
@@ -87,13 +88,13 @@ router.post('/', async (req, res) => {
       }
     }
 
-    // FIXED: Add ALL necessary fields including deity and category
+    // Include ALL necessary fields from the Temple data
     bucketlistData.templeId = temple.id;
     bucketlistData.templeName = temple.name;
     bucketlistData.templeLocation = temple.location;
     bucketlistData.templeImage = temple.image;
-    bucketlistData.deity = temple.deity;        // ADD THIS
-    bucketlistData.category = temple.category;  // ADD THIS
+    bucketlistData.deity = temple.deity;        // CORRECT
+    bucketlistData.category = temple.category;  // CORRECT
 
     const bucketlistItem = new Bucketlist(bucketlistData);
     await bucketlistItem.save();
@@ -110,6 +111,7 @@ router.post('/', async (req, res) => {
   } catch (error) {
     console.error('Error adding to bucketlist:', error);
     if (error.code === 11000) {
+      // Catch MongoDB duplicate key error which can happen during race conditions
       res.status(400).json({ error: 'Temple already in bucketlist' });
     } else {
       res.status(500).json({ error: 'Failed to add to bucketlist' });
@@ -117,7 +119,7 @@ router.post('/', async (req, res) => {
   }
 });
 
-// Remove temple from bucketlist
+// Remove temple from bucketlist (Authenticated or Guest)
 router.delete('/:templeId', async (req, res) => {
   try {
     const { userId, isAuthenticated } = getUserFromToken(req);
@@ -148,7 +150,7 @@ router.delete('/:templeId', async (req, res) => {
   }
 });
 
-// Clear entire bucketlist
+// Clear entire bucketlist (Authenticated or Guest)
 router.delete('/', async (req, res) => {
   try {
     const { userId, isAuthenticated } = getUserFromToken(req);
@@ -177,45 +179,44 @@ router.delete('/', async (req, res) => {
 });
 
 // Migrate session-based bucketlist to user account (called when user logs in)
-// DEPLOYMENT FIX: Applied the strict 'auth' middleware to ensure a valid user is logged in
 router.post('/migrate', auth, async (req, res) => { 
   try {
-    // The 'auth' middleware guarantees req.userId is set
+    // Standard auth middleware attaches user info to req.user, though the provided code uses req.userId.
+    // Assuming the user's setup attaches the ID directly to the request object.
     const userId = req.userId; 
     let { sessionId } = req.body;
 
     if (!sessionId) {
+      // Use fallback if sessionId isn't explicitly sent in the body
       const fallbackSessionId = generateSessionId(req);
       if (!fallbackSessionId || fallbackSessionId === 'default-session') {
-        // Must provide session ID to know which guest list to migrate
         return res.status(400).json({ error: 'Session ID required for migration' }); 
       }
       sessionId = fallbackSessionId;
     }
 
     // Find all session-based bucketlist items
+    // Using .lean() for performance
     const sessionItems = await Bucketlist.find({ 
       sessionId, 
       userId: { $exists: false } 
-    });
+    }).lean(); 
 
     if (sessionItems.length === 0) {
       return res.json({ message: 'No items to migrate', migratedCount: 0 });
     }
 
-    // Use Mongoose bulk write for efficiency instead of individual saves/deletes
+    // Pre-check user's existing list to avoid duplicates
+    const userItems = await Bucketlist.find({ userId }).select('templeId').lean();
+    const existingUserTempleIds = new Set(userItems.map(item => item.templeId));
+
     let migratedCount = 0;
     const bulkOperations = [];
     const sessionItemIdsToDelete = [];
 
     for (const item of sessionItems) {
-      // Check for duplicates before migrating
-      const existingUserItem = await Bucketlist.findOne({
-        userId,
-        templeId: item.templeId
-      });
-
-      if (!existingUserItem) {
+      // Only migrate if the user doesn't already have this temple
+      if (!existingUserTempleIds.has(item.templeId)) {
         // Prepare to insert the new item for the user
         bulkOperations.push({
           insertOne: {
@@ -225,6 +226,9 @@ router.post('/migrate', auth, async (req, res) => {
               templeName: item.templeName,
               templeLocation: item.templeLocation,
               templeImage: item.templeImage,
+              // FIX: CRITICAL: Include deity and category from the session item
+              deity: item.deity,        
+              category: item.category,  
               addedAt: item.addedAt
             }
           }
@@ -242,6 +246,7 @@ router.post('/migrate', auth, async (req, res) => {
     }
     
     if (sessionItemIdsToDelete.length > 0) {
+      // Clean up the guest entries
       await Bucketlist.deleteMany({ _id: { $in: sessionItemIdsToDelete } });
     }
 
@@ -257,7 +262,7 @@ router.post('/migrate', auth, async (req, res) => {
   }
 });
 
-// Check if temple is in bucketlist
+// Check if temple is in bucketlist (Authenticated or Guest)
 router.get('/check/:templeId', async (req, res) => {
   try {
     const { templeId } = req.params;
