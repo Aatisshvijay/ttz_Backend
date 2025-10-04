@@ -28,6 +28,8 @@ const bucketlistSchema = new mongoose.Schema({
     type: String,
     required: false
   },
+   deity: String,      // ADD THIS
+  category: String,   // ADD THIS
   addedAt: {
     type: Date,
     default: Date.now

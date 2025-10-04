@@ -51,7 +51,8 @@ router.get('/', async (req, res) => {
   }
 });
 
-// Add temple to bucketlist
+// In routes/bucketlist.js - Update the "Add temple to bucketlist" route
+
 router.post('/', async (req, res) => {
   try {
     const { templeId } = req.body;
@@ -70,16 +71,13 @@ router.post('/', async (req, res) => {
     }
 
     if (isAuthenticated && userId) {
-      // User is authenticated
       bucketlistData.userId = userId;
       
-      // Check if already in bucketlist for this user
       const existing = await Bucketlist.findOne({ userId, templeId });
       if (existing) {
         return res.status(400).json({ error: 'Temple already in bucketlist' });
       }
     } else {
-      // User not authenticated - use session-based
       const sessionId = generateSessionId(req);
       bucketlistData.sessionId = sessionId;
       
@@ -89,11 +87,13 @@ router.post('/', async (req, res) => {
       }
     }
 
-    // Add common temple data
+    // FIXED: Add ALL necessary fields including deity and category
     bucketlistData.templeId = temple.id;
     bucketlistData.templeName = temple.name;
     bucketlistData.templeLocation = temple.location;
     bucketlistData.templeImage = temple.image;
+    bucketlistData.deity = temple.deity;        // ADD THIS
+    bucketlistData.category = temple.category;  // ADD THIS
 
     const bucketlistItem = new Bucketlist(bucketlistData);
     await bucketlistItem.save();
@@ -101,8 +101,9 @@ router.post('/', async (req, res) => {
     console.log('Added to bucketlist:', {
       templeId: temple.id,
       templeName: temple.name,
-      userId: isAuthenticated ? userId : 'guest',
-      sessionId: !isAuthenticated ? bucketlistData.sessionId : 'N/A'
+      deity: temple.deity,
+      category: temple.category,
+      userId: isAuthenticated ? userId : 'guest'
     });
     
     res.status(201).json(bucketlistItem);
