@@ -121,6 +121,10 @@ router.get('/deities/:deity/categories', async (req, res) => {
     const decodedDeity = decodeURIComponent(deity);
     const cacheKey = `categories_${decodedDeity}`;
     
+    console.log('=== FETCHING CATEGORIES FOR DEITY ===');
+    console.log('Raw deity param:', deity);
+    console.log('Decoded deity:', decodedDeity);
+    
     const cached = getCachedData(cacheKey);
     if (cached) {
       console.log(`Returning cached categories for ${decodedDeity}`);
@@ -129,7 +133,7 @@ router.get('/deities/:deity/categories', async (req, res) => {
     
     console.log('Fetching categories for deity:', decodedDeity);
     
-    // Single aggregation query instead of multiple queries
+    // Single aggregation query - NO CHANGES HERE, this logic is correct
     const categoryData = await Temple.aggregate([
       {
         $match: { deity: decodedDeity }
@@ -152,6 +156,9 @@ router.get('/deities/:deity/categories', async (req, res) => {
       }
     ]);
 
+    console.log(`Found ${categoryData.length} categories for ${decodedDeity}:`, 
+                categoryData.map(c => c.name));
+
     if (categoryData.length === 0) {
       console.log('No categories found for deity:', decodedDeity);
       return res.json([]);
@@ -164,12 +171,12 @@ router.get('/deities/:deity/categories', async (req, res) => {
     }));
 
     setCachedData(cacheKey, enrichedCategories);
-    console.log(`Found ${enrichedCategories.length} categories for ${decodedDeity}`);
+    console.log(`Returning ${enrichedCategories.length} categories for ${decodedDeity}`);
     
     res.json(enrichedCategories);
   } catch (error) {
     console.error('Error fetching categories:', error);
-    res.status(500).json({ error: 'Failed to fetch categories' });
+    res.status(500).json({ error: 'Failed to fetch categories', details: error.message });
   }
 });
 
