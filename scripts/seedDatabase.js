@@ -2264,6 +2264,50 @@ const templeData = {
             festivals: "Maha Shivratri, Ellora Festival",
             state: "Maharashtra",
           },
+          {
+        id: "st7",
+        name: "Shankaracharya Temple, Srinagar",
+        location: "Srinagar, Jammu & Kashmir, India",
+        description: "Dedicated to Lord Shiva. It is an ancient temple situated on the Gopadari Hill. It is believed to have been originally built by King Gopaditya in 371 BC and was later visited by the philosopher Adi Shankaracharya in the 8th century AD, who consecrated the temple, hence its current name.",
+        image: "https://res.cloudinary.com/dto53p1cf/image/upload/v1760094474/new2_bevcep.jpg",
+        significance: "Believed to be the place where Adi Shankaracharya visited.",
+        bestTime: "April to October",
+        festivals: "Maha Shivaratri",
+        state: "Jammu & Kashmir"
+      },
+      {
+        id: "st8",
+        name: "Sthaneshwar Mahadev Temple, Kurukshetra",
+        location: "Kurukshetra, Haryana, India",
+        description: "Dedicated to Lord Shiva (Mahadev). It is one of the oldest temples in the region. According to a legend related to the Mahabharata, Lord Shiva blessed the Pandavas for victory in the war here. It is also believed that the holy waters of the temple's tank cured the leprosy of a Brahmin who then helped restore the lost kingdom of a local King.",
+        image: "https://res.cloudinary.com/dto53p1cf/image/upload/v1760094473/new4_omtd0e.jpg",
+        significance: "Believed to be the place where Lord Shiva blessed the Pandavas for victory.",
+        bestTime: "October to March",
+        festivals: "Maha Shivaratri",
+        state: "Haryana"
+      },
+       {
+        id: "dd9",
+        name: "Jageshwar Dham",
+        location: "Almora, Uttarakhand, India",
+        description: "A cluster of over 100 temples dedicated to Lord Shiva (Jageshwar). It is a significant pilgrimage center in the Kumaon region. Mythology suggests that Jageshwar is the place where Lord Shiva first descended to earth to meditate. Lord Shiva is worshiped here as 'Bal Jageshwar' (Child Shiva).",
+        image: "https://res.cloudinary.com/dto53p1cf/image/upload/v1760094473/new8_rqgjqy.jpg",
+        significance: "One of the twelve Jyotirlingas, according to some local traditions.",
+        bestTime: "September to November",
+        festivals: "Maha Shivaratri",
+        state: "Uttarakhand"
+      },
+      {
+        id: "st10",
+        name: "Tungnath Temple",
+        location: "Rudraprayag, Uttarakhand, India",
+        description: "Dedicated to Lord Shiva. It is the highest Shiva temple in the world and the third of the Panch Kedar. The Panch Kedar temples are associated with the Pandavas, who built them to atone for the sin of 'Gotra Hatya' (killing kin) during the Mahabharata war. Tungnath represents the arms (Bahu) of Lord Shiva.",
+        image: "https://res.cloudinary.com/dto53p1cf/image/upload/v1760094472/new9_nt9hu1.jpg",
+        significance: "The highest of the five Panch Kedar temples.",
+        bestTime: "May to October",
+        festivals: "Maha Shivaratri",
+        state: "Uttarakhand"
+      },
         ],
       },
     },
@@ -2961,6 +3005,39 @@ const templeData = {
   festivals: "Chithirai Festival",
   state: "Tamil Nadu"
 },
+ {
+        id: "dt12",
+        name: "Vaishno Devi Temple",
+        location: "Katra, Jammu & Kashmir, India",
+        description: "Dedicated to Vaishno Devi, a manifestation of Goddess Durga. The shrine is a holy cave located in the Trikuta Mountains. Legend states that the Goddess, in her human form, was chased by a demon named Bhairon Nath, whom she eventually slew near the cave. The three 'pindis' (rock forms) inside the cave are said to represent the Goddess's three manifestations: Maha Kali, Maha Lakshmi, and Maha Saraswati.",
+        image: "https://res.cloudinary.com/dto53p1cf/image/upload/v1760094475/new1_o0trh1.jpg",
+        significance: "One of the most revered Shakti Peethas.",
+        bestTime: "March to October",
+        festivals: "Navratri",
+        state: "Jammu & Kashmir"
+      },
+      {
+        id: "dt14",
+        name: "Gangotri Temple",
+        location: "Uttarkashi, Uttarakhand, India",
+        description: "Dedicated to Goddess Ganga. It marks the source of the holy River Ganga (Bhagirathi River). The story is that King Bhagiratha performed severe penance here for thousands of years to bring the Goddess Ganga down to Earth from heaven to cleanse the sins of his ancestors.",
+        image: "https://res.cloudinary.com/dto53p1cf/image/upload/v1760094473/new6_b1rmhy.jpg",
+        significance: "One of the four Char Dham pilgrimage sites and the origin of the Ganga river.",
+        bestTime: "May to November",
+        festivals: "Ganga Dussehra",
+        state: "Uttarakhand"
+      },
+      {
+        id: "dt15",
+        name: "Yamunotri Temple",
+        location: "Uttarkashi, Uttarakhand, India",
+        description: "Dedicated to Goddess Yamuna. It marks the source of the holy River Yamuna. The temple is situated near a hot water spring, which is a key pilgrimage spot. Mythology identifies Goddess Yamuna as the daughter of the Sun God, Surya, and the sister of Yama (God of Death).",
+        image: "https://res.cloudinary.com/dto53p1cf/image/upload/v1760094473/new7_ttnns0.jpg",
+        significance: "The first stop in the Chota Char Dham Yatra.",
+        bestTime: "May to November",
+        festivals: "Yamuna Jayanti",
+        state: "Uttarakhand"
+      },
 {
   id: "dt2",
   name: "Kamakshi Amman Temple",
@@ -3080,7 +3157,72 @@ const templeData = {
   bestTime: "October to March",
   festivals: "Thai Poosam, Navratri",
   state: "Tamil Nadu"
-},
+}, {
+        id: "dt13",
+        name: "Mata Mansa Devi Temple, Panchkula",
+        location: "Panchkula, Haryana, India",
+        description: "Dedicated to Goddess Mansa Devi, a form of Shakti. The temple is a significant pilgrimage site near Chandigarh. The name 'Mansa' refers to the fulfillment of desires. It is widely believed that the Goddess fulfills the wishes ('Mansa') of her devotees who visit the shrine.",
+        image: "https://res.cloudinary.com/dto53p1cf/image/upload/v1760094474/new3_eiqg1d.jpg",
+        significance: "Revered for fulfillment of wishes (Mansa).",
+        bestTime: "October to March",
+        festivals: "Navratri",
+        state: "Haryana"
+      },
+      {
+        id: "dt14",
+        name: "Bhim Devi Temple, Pinjore",
+        location: "Pinjore, Haryana, India",
+        description: "Dedicated to Goddess Bhim Devi, a form of Durga. The temple is known for its archaeological ruins. It is said that the Pandavas, while in exile, spent time in the Pinjore region and established the shrine to worship the Goddess.",
+        image: "https://res.cloudinary.com/dto53p1cf/image/upload/v1760094474/new5_e2xnsa.jpg",
+        significance: "Associated with the Pandavas during their exile.",
+        bestTime: "October to March",
+        festivals: "Navratri",
+        state: "Haryana"
+      },
+       {
+        id: "dt16",
+        name: "Jwala Devi Temple, Kangra",
+        location: "Kangra, Himachal Pradesh, India",
+        description: "Dedicated to Jwala Devi (Goddess of Light/Fire), an aspect of Shakti. Worship is performed over an eternally burning natural gas flame. It is one of the 51 Shakti Peethas, where the tongue of Goddess Sati is believed to have fallen after her body was dismembered by Lord Vishnu's chakra.",
+        image: "https://res.cloudinary.com/dto53p1cf/image/upload/v1760094473/new10_vbvvzq.jpg",
+        significance: "One of the 51 Shakti Peethas.",
+        bestTime: "October to March",
+        festivals: "Navratri",
+        state: "Himachal Pradesh"
+      },
+      {
+        id: "dt17",
+        name: "Hadimba Devi Temple, Manali",
+        location: "Manali, Himachal Pradesh, India",
+        description: "Dedicated to Goddess Hadimba, wife of Bhima from the Mahabharata. The temple is famous for its distinct wooden pagoda-style architecture. Hadimba was a Rakshasi (demoness) who vowed to marry the man who could defeat her brother, Hadimba. Bhima killed her brother and married her; she later performed intense meditation to attain the status of a Goddess.",
+        image: "https://res.cloudinary.com/dto53p1cf/image/upload/v1760094472/new11_ebql1g.jpg",
+        significance: "Dedicated to a local deity and a figure from the Mahabharata.",
+        bestTime: "May to October",
+        festivals: "Bahidra Duja",
+        state: "Himachal Pradesh"
+      },
+      {
+        id: "dt18",
+        name: "Kalka Mandir, Kalkaji",
+        location: "Kalkaji, New Delhi, Delhi, India",
+        description: "Dedicated to Goddess Kali/Kalka Devi. It is a very old and revered temple in the capital. Legend holds that the Goddess Kali was born here on the hill, known as 'Suryakoot', to slay the giant demon Raktabija. The temple is believed to have been established at the very spot where she manifested.",
+        image: "https://res.cloudinary.com/dto53p1cf/image/upload/v1760094472/new13_w6n3vf.jpg",
+        significance: "Believed to be one of the Siddh Peethas.",
+        bestTime: "October to March",
+        festivals: "Navratri",
+        state: "Delhi"
+      },
+      {
+        id: "dt19",
+        name: "Chattarpur Temple",
+        location: "Chhatarpur, New Delhi, Delhi, India",
+        description: "Dedicated to Goddess Durga (Maa Katyayani). The vast complex was founded by Baba Sant Nagpal Ji in 1974. The main shrine is dedicated to Goddess Katyayani, who is one of the Navadurga forms of Goddess Durga, revered for her power and protection.",
+        image: "https://res.cloudinary.com/dto53p1cf/image/upload/v1760094472/news14_rjlu7e.jpg",
+        significance: "Second largest temple complex in India after Akshardham.",
+        bestTime: "October to March",
+        festivals: "Navratri",
+        state: "Delhi"
+      }
         ],
       },
     },
