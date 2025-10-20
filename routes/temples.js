@@ -569,7 +569,7 @@ const TEMPLE_PACKAGES = {
     image: 'https://res.cloudinary.com/dto53p1cf/image/upload/v1760705799/dd1_beavbf.jpg',
     
     season: 'Oct-March',
-    description: 'Visit the most important Vishnu temples in Tamil Nadu'
+    description: 'Visit the most important Vishnu temples in South India'
   },
   'jyotirlinga-circuit': {
     name: '12 Jyotirlinga Darshan',
