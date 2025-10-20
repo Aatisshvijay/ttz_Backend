@@ -547,4 +547,159 @@ if (process.env.NODE_ENV !== 'production') {
   });
 }
 
+// Add this to your temples.js file, before module.exports
+
+// Package definitions with temple IDs
+const TEMPLE_PACKAGES = {
+  'char-dham': {
+    name: 'Char Dham Yatra',
+    duration: '10-12 Days',
+    templeIds: ['dd105', 'jtp', 'cd3', 'jl11'], 
+    
+    image: 'https://res.cloudinary.com/dto53p1cf/image/upload/v1760706892/dd105_svznf8.jpg',
+    
+    season: 'May-October',
+    description: 'Complete sacred circuit of Uttarakhand\'s four holy shrines'
+  },
+  'divya-desam-south': {
+    name: 'South India Divya Desam Tour',
+    duration: '7 Days',
+    templeIds: ['dd1', 'dd96', 'dd43', 'dd65'], // Srirangam, Tirupati, Kanchipuram, Madurai
+    
+    image: 'https://res.cloudinary.com/dto53p1cf/image/upload/v1760705799/dd1_beavbf.jpg',
+    
+    season: 'Oct-March',
+    description: 'Visit the most important Vishnu temples in Tamil Nadu'
+  },
+  'jyotirlinga-circuit': {
+    name: '12 Jyotirlinga Darshan',
+    duration: '14 Days',
+    templeIds: ['jl1', 'jl2', 'jl3', 'jl4', 'jl5', 'jl6', 'jl7', 'jl8', 'jl9', 'jl10', 'jl11', 'jl12'],
+    
+    image: 'https://res.cloudinary.com/dto53p1cf/image/upload/v1759147388/j1_t07hmo.png',
+    
+    season: 'Year-round',
+    description: 'Complete pilgrimage of all 12 sacred Shiva shrines'
+  },
+  'arupadai-veedu': {
+    name: 'Arupadai Veedu (6 Abodes)',
+    duration: '5 Days',
+    templeIds: ['aru1', 'aru2', 'aru3', 'aru4', 'aru5', 'aru6'],
+    
+    image: 'https://res.cloudinary.com/dto53p1cf/image/upload/v1759147323/m1_vrxbv9.png',
+    
+    season: 'Oct-March',
+    description: 'Complete tour of Lord Murugan\'s six sacred abodes'
+  },
+  'shakti-peetha': {
+    name: 'Shakti Peetha Yatra',
+    duration: '12 Days',
+    templeIds: ['sp1', 'sp2', 'dt12', 'sp9'], // Kalighat, Kamakhya, Vaishno Devi, Jwalamukhi
+    
+    image: 'https://res.cloudinary.com/dto53p1cf/image/upload/v1759147281/shakti_e7kaaz.png',
+    
+    season: 'Year-round',
+    description: 'Sacred journey to powerful Goddess Shakti temples'
+  },
+  'pancha-bhoota': {
+    name: 'Pancha Bhoota Sthalams',
+    duration: '4 Days',
+    templeIds: ['pe1', 'pe2', 'pe3', 'pe4', 'pe5'],
+    
+    image: 'https://res.cloudinary.com/dto53p1cf/image/upload/v1759147292/pb_ng5jll.png',
+    
+    season: 'Oct-March',
+    description: 'Visit temples representing five elements of nature'
+  },
+  'hanuman-circuit': {
+    name: 'Hanuman Temple Circuit',
+    duration: '6 Days',
+    templeIds: ['h2', 'h10', 'h3', 'h12'], // Sankat Mochan, Mahavir Mandir, Salasar, Panchmukhi
+    
+    image: 'https://res.cloudinary.com/dto53p1cf/image/upload/v1759147343/hanuman_smnyyx.png',
+    
+    season: 'Year-round',
+    description: 'Powerful circuit of Lord Hanuman\'s sacred shrines'
+  },
+  'ashtavinayak': {
+    name: 'Ashtavinayak Yatra',
+    duration: '2 Days',
+    templeIds: ['av1', 'av2', 'av3', 'av4', 'av5', 'av6', 'av7', 'av8'],
+    
+    image: 'https://res.cloudinary.com/dto53p1cf/image/upload/v1759147355/ganesha_xgclup.png',
+    
+    season: 'Year-round',
+    description: 'Complete 8 sacred Ganesha temples in Maharashtra'
+  }
+};
+
+// GET all available packages (for homepage display)
+router.get('/packages', async (req, res) => {
+  try {
+    const packages = Object.entries(TEMPLE_PACKAGES).map(([id, pkg]) => ({
+      id,
+      ...pkg,
+      templeCount: pkg.templeIds.length
+    }));
+    
+    res.json(packages);
+  } catch (error) {
+    console.error('Error fetching packages:', error);
+    res.status(500).json({ error: 'Failed to fetch packages' });
+  }
+});
+
+// GET temples for a specific package (reuses existing temple structure)
+router.get('/packages/:packageId/temples', async (req, res) => {
+  try {
+    const { packageId } = req.params;
+    const pkg = TEMPLE_PACKAGES[packageId];
+    
+    if (!pkg) {
+      return res.status(404).json({ error: 'Package not found' });
+    }
+    
+    console.log(`Fetching temples for package: ${pkg.name}`);
+    console.log('Temple IDs:', pkg.templeIds);
+    
+    // Fetch all temples in the package
+    const temples = await Temple.find({ 
+      id: { $in: pkg.templeIds } 
+    }).lean();
+    
+    console.log(`Found ${temples.length} temples for package ${packageId}`);
+    
+    // Sort temples in the order specified in templeIds
+    const sortedTemples = pkg.templeIds
+      .map(id => temples.find(t => t.id === id))
+      .filter(t => t !== undefined);
+    
+    res.json(sortedTemples);
+  } catch (error) {
+    console.error('Error fetching package temples:', error);
+    res.status(500).json({ error: 'Failed to fetch package temples' });
+  }
+});
+
+// GET single package details
+router.get('/packages/:packageId', async (req, res) => {
+  try {
+    const { packageId } = req.params;
+    const pkg = TEMPLE_PACKAGES[packageId];
+    
+    if (!pkg) {
+      return res.status(404).json({ error: 'Package not found' });
+    }
+    
+    res.json({
+      id: packageId,
+      ...pkg,
+      templeCount: pkg.templeIds.length
+    });
+  } catch (error) {
+    console.error('Error fetching package:', error);
+    res.status(500).json({ error: 'Failed to fetch package' });
+  }
+});
+
 module.exports = router;
