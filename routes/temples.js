@@ -559,7 +559,7 @@ const TEMPLE_PACKAGES = {
     image: 'https://res.cloudinary.com/dto53p1cf/image/upload/v1760706892/dd105_svznf8.jpg',
     
     season: 'May-October',
-    description: 'Complete sacred circuit of Uttarakhand\'s four holy shrines'
+    description: 'Complete sacred circuit of India\'s four holy shrines'
   },
   'divya-desam-south': {
     name: 'South India Divya Desam Tour',
@@ -571,6 +571,15 @@ const TEMPLE_PACKAGES = {
     season: 'Oct-March',
     description: 'Visit the most important Vishnu temples in South India'
   },
+  "divya-desam-north": {
+    name: 'North India Divya Desam Tour',
+    duration: '5 Days',
+    // Placeholders for key Northern Divya Desams: Badrinath, Muktinath (Nepal), Naimisharanyam
+    templeIds: ['dd99','dd100','dd101','dd102','dd103','dd104','dd105', 'dd106'], 
+    image: 'https://res.cloudinary.com/dto53p1cf/image/upload/v1760706520/dd102_lqflqx.jpg',
+    season: 'May-October',
+    description: 'A focused spiritual journey covering the high-altitude and historical Divya Desams of North India, including Badrinath.'
+},
   'jyotirlinga-circuit': {
     name: '12 Jyotirlinga Darshan',
     duration: '14 Days',
@@ -586,7 +595,7 @@ const TEMPLE_PACKAGES = {
     duration: '5 Days',
     templeIds: ['aru1', 'aru2', 'aru3', 'aru4', 'aru5', 'aru6'],
     
-    image: 'https://res.cloudinary.com/dto53p1cf/image/upload/v1759147323/m1_vrxbv9.png',
+    image: 'https://res.cloudinary.com/dto53p1cf/image/upload/v1759147328/m5_w6w69b.png',
     
     season: 'Oct-March',
     description: 'Complete tour of Lord Murugan\'s six sacred abodes'
@@ -606,7 +615,7 @@ const TEMPLE_PACKAGES = {
     duration: '4 Days',
     templeIds: ['pe1', 'pe2', 'pe3', 'pe4', 'pe5'],
     
-    image: 'https://res.cloudinary.com/dto53p1cf/image/upload/v1759147292/pb_ng5jll.png',
+    image: 'https://res.cloudinary.com/dto53p1cf/image/upload/v1759147378/pe3_abpb8x.png',
     
     season: 'Oct-March',
     description: 'Visit temples representing five elements of nature'
@@ -616,7 +625,7 @@ const TEMPLE_PACKAGES = {
     duration: '6 Days',
     templeIds: ['h2', 'h10', 'h3', 'h12'], // Sankat Mochan, Mahavir Mandir, Salasar, Panchmukhi
     
-    image: 'https://res.cloudinary.com/dto53p1cf/image/upload/v1759147343/hanuman_smnyyx.png',
+    image: 'https://res.cloudinary.com/dto53p1cf/image/upload/v1759147351/h3_lq9hbl.png',
     
     season: 'Year-round',
     description: 'Powerful circuit of Lord Hanuman\'s sacred shrines'
@@ -626,7 +635,7 @@ const TEMPLE_PACKAGES = {
     duration: '2 Days',
     templeIds: ['av1', 'av2', 'av3', 'av4', 'av5', 'av6', 'av7', 'av8'],
     
-    image: 'https://res.cloudinary.com/dto53p1cf/image/upload/v1759147355/ganesha_xgclup.png',
+    image: 'https://res.cloudinary.com/dto53p1cf/image/upload/v1759147359/g2_u8wwqo.png',
     
     season: 'Year-round',
     description: 'Complete 8 sacred Ganesha temples in Maharashtra'
